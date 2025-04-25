@@ -3,8 +3,10 @@ import os
 from datetime import datetime
 from pathlib import Path
 
-# File path for task storage
+# Globals
 DEFAULT_TASKS_FILE = str(Path(__file__).parent / "tasks.json")
+DATE_FORMAT = "%Y-%m-%d"
+TIME_FORMAT = "%Y-%m-%d %H:%M:%S"
 
 
 def load_tasks(file_path=DEFAULT_TASKS_FILE):
@@ -52,7 +54,7 @@ def generate_unique_id(tasks):
     """
     if not tasks:
         return 1
-    return max(task["id"] for task in tasks) + 1
+    return max(task.get("id", 0) for task in tasks) + 1
 
 
 def filter_tasks_by_priority(tasks, priority):
@@ -127,9 +129,20 @@ def get_overdue_tasks(tasks):
     Returns:
         list: List of overdue tasks
     """
-    today = datetime.now().strftime("%Y-%m-%d")
-    return [
-        task
-        for task in tasks
-        if not task.get("completed", False) and task.get("due_date", "") < today
-    ]
+    today = datetime.now().date()
+
+    overdue = []
+
+    for task in tasks:
+        if not task.get("completed", False):
+            due_date = task.get("due_date")
+            if due_date:
+                try:
+                    if datetime.strptime(due_date, DATE_FORMAT).date() < today:
+                        overdue.append(task)
+                except ValueError as e:
+                    print(
+                        f"Could not parse date: {due_date}. Does it match the format '{DATE_FORMAT}'?"
+                    )
+
+    return overdue

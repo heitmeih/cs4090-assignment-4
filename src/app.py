@@ -2,27 +2,57 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-import pandas as pd
 import streamlit as st
 
-sys.path.append(str(Path(__file__).parents[1]))
+sys.path.append(str(Path(__file__).resolve().parents[1]))
 
 from tasks import (
+    DATE_FORMAT,
+    TIME_FORMAT,
     filter_tasks_by_category,
     filter_tasks_by_priority,
+    generate_unique_id,
     load_tasks,
     save_tasks,
 )
 from tests import test_basic
 
 
+def run_tests(run_func, test_name="Test"):
+    with st.status("Running tests...", state="running") as status:
+        reports = run_func()
+
+        passed = []
+        failed = []
+
+        for nodeid, test_passed in reports:
+            if test_passed:
+                passed.append(nodeid)
+            else:
+                failed.append(nodeid)
+
+        message = "\n\n".join(
+            [
+                f"**Results for `{test_name}`:**",
+                f"{len(passed)} tests passed!",
+                f"{len(failed)} tests failed!",
+            ]
+        )
+
+        if failed:
+            lines = ["Failing tests:\n"]
+            for node in failed:
+                lines.append(f"- {node}")
+
+            error_report = "\n".join(lines)
+
+            status.update(label=f"{message}\n\n{error_report}", state="error")
+        else:
+            status.update(label=message, state="complete")
+
+
 def main():
     st.title("To-Do Application")
-
-    test_basic_button = st.button("shart")
-
-    if test_basic_button:
-        st.write(test_basic.run_tests())
 
     # Load existing tasks
     tasks = load_tasks()
@@ -43,14 +73,14 @@ def main():
 
         if submit_button and task_title:
             new_task = {
-                "id": len(tasks) + 1,
+                "id": generate_unique_id(tasks),
                 "title": task_title,
                 "description": task_description,
                 "priority": task_priority,
                 "category": task_category,
-                "due_date": task_due_date.strftime("%Y-%m-%d"),
+                "due_date": task_due_date.strftime(DATE_FORMAT),
                 "completed": False,
-                "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "created_at": datetime.now().strftime(TIME_FORMAT),
             }
             tasks.append(new_task)
             save_tasks(tasks)
@@ -64,7 +94,8 @@ def main():
     with col1:
         filter_category = st.selectbox(
             "Filter by Category",
-            ["All"] + list(set([task["category"] for task in tasks])),
+            ["All"]
+            + list(set([task["category"] for task in tasks if "category" in task])),
         )
     with col2:
         filter_priority = st.selectbox(
@@ -108,6 +139,11 @@ def main():
                 tasks = [t for t in tasks if t["id"] != task["id"]]
                 save_tasks(tasks)
                 st.rerun()
+
+    st.header("Tests")
+
+    if st.button("Run Basic Tests"):
+        run_tests(test_basic.run_tests)
 
 
 if __name__ == "__main__":

@@ -16,35 +16,10 @@ class TestReporter:
             self.reports.add((report.nodeid, report.passed))
 
 
-def format_report(reports: tuple[str, bool], test_name):
-    passed = []
-    failed = []
-
-    for nodeid, test_passed in reports:
-        if test_passed:
-            passed.append(nodeid)
-        else:
-            failed.append(nodeid)
-
-    lines = [
-        f"**Results for `{test_name}`:**",
-        "",
-        f"{len(passed)} tests passed!",
-        f"{len(failed)} tests failed!",
-    ]
-
-    if failed:
-        lines.append("Failing tests:")
-        for node in failed:
-            lines.append(f"- {node}")
-
-    return "\n\n".join(lines)
-
-
 def run_pytest(file):
     reporter = TestReporter()
-    pytest.main([file, "-p", "no:terminal"], plugins=[reporter])
-    return format_report(reporter.reports, Path(file).stem)
+    pytest.main([file], plugins=[reporter])
+    return reporter.reports
 
 
 TEST_DATA = [

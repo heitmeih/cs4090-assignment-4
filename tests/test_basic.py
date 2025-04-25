@@ -5,9 +5,8 @@ import os
 from datetime import datetime, timedelta
 from pathlib import Path
 
-from common import TEST_DATA, TEST_DATA_PATH, run_pytest
-
 from src import tasks
+from tests.common import TEST_DATA, TEST_DATA_PATH, run_pytest
 
 parent_dir = Path(__file__).parent.resolve()
 
@@ -19,6 +18,7 @@ def test_load_tasks_success():
 
 
 def test_load_tasks_parse_error():
+    # try to parse this file
     data = tasks.load_tasks(__file__)
 
     assert data == []
@@ -47,7 +47,9 @@ def test_save_tasks():
 
 
 def test_generate_unique_id():
-    id_ = tasks.generate_unique_id(TEST_DATA)
+    data = [*TEST_DATA, {"title": "No ID"}]
+
+    id_ = tasks.generate_unique_id(data)
 
     assert id_ == 5
 
@@ -78,7 +80,9 @@ def test_search_tasks():
 
 def test_get_overdue_tasks():
 
-    tomorrow = (datetime.now() + timedelta(hours=24)).strftime("%Y-%m-%d")
+    tomorrow = (datetime.now() + timedelta(days=1)).strftime(tasks.DATE_FORMAT)
+    yesterday = (datetime.now() - timedelta(days=1)).strftime(tasks.DATE_FORMAT)
+
     data = [
         TEST_DATA[2],  # very overdue
         {
@@ -91,11 +95,50 @@ def test_get_overdue_tasks():
             "completed": False,
             "created_at": "2025-04-10 17:54:06",
         },
+        {
+            "id": 6,
+            "title": "Test 6",
+            "description": "This task was due yesterday",
+            "priority": "High",
+            "category": "Work",
+            "due_date": yesterday,
+            "completed": False,
+            "created_at": "2025-04-10 17:54:06",
+        },
+        {
+            "id": 7,
+            "title": "Test 7",
+            "description": "This task is missing a due date",
+            "priority": "High",
+            "category": "Work",
+            "completed": False,
+            "created_at": "2025-04-10 17:54:06",
+        },
+        {
+            "id": 8,
+            "title": "Test 8",
+            "description": "This task was due yesterday but is completed",
+            "priority": "High",
+            "category": "Work",
+            "due_date": yesterday,
+            "completed": True,
+            "created_at": "2025-04-10 17:54:06",
+        },
+        {
+            "id": 9,
+            "title": "Test 9",
+            "description": "This task has the incorrect date format",
+            "priority": "High",
+            "category": "Work",
+            "due_date": "burger",
+            "completed": False,
+            "created_at": "2025-04-10 17:54:06",
+        },
     ]
 
     items = tasks.get_overdue_tasks(data)
 
-    assert items == [TEST_DATA[2]]
+    assert items == [TEST_DATA[2], data[2]]
 
 
 def run_tests():
