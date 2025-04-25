@@ -243,3 +243,19 @@ with col2:
     )
 # file continues...
 ```
+
+### Bug 6
+
+#### Description
+
+Some of the files in the app had invisible characters in their name, which I removed. These appeared as boxes in my file names within VSCode. I noticed and changed these immediately, so I'm unsure if they'd affect running tests or code.
+
+#### Before
+
+![invisible characters in file name](./attachments/invis-char-before.png)
+
+#### After
+
+After renaming the files, the boxes were removed:
+
+![normal file name](./attachments/invis-char-after.png)

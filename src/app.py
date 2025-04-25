@@ -6,6 +6,11 @@ import streamlit as st
 
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
+from tests import code_coverage
+
+# need to monitor coverage during imports
+code_coverage.cov.start()
+
 from tasks import (
     DATE_FORMAT,
     TIME_FORMAT,
@@ -16,6 +21,8 @@ from tasks import (
     save_tasks,
 )
 from tests import test_basic
+
+code_coverage.cov.stop()
 
 
 def run_tests(run_func, test_name="Test"):
@@ -143,7 +150,20 @@ def main():
     st.header("Tests")
 
     if st.button("Run Basic Tests"):
-        run_tests(test_basic.run_tests)
+        run_tests(test_basic.run_tests, "Basic Unit Tests")
+
+    if st.button("Get Test Coverage"):
+        with st.status("Running Tests...") as status:
+            report = code_coverage.get_code_coverage()
+
+            message = "\n\n".join(
+                [
+                    "**NOTE:** Coverage for app.py is not accurate when coverage is run through the streamlit app. All other stats are correct."
+                ]
+                + [f"`{name}: {coverage:.2f}%`" for name, coverage in report]
+            )
+
+            status.update(label=message, state="complete")
 
 
 if __name__ == "__main__":

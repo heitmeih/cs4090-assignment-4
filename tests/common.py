@@ -4,7 +4,6 @@ from pathlib import Path
 import pytest
 
 sys.path.append(str(Path(__file__).parents[1]))
-print(sys.path)
 
 
 class TestReporter:
@@ -21,6 +20,12 @@ def run_pytest(file):
     pytest.main([file], plugins=[reporter])
     return reporter.reports
 
+
+_test_dir = Path(__file__).parent.resolve()
+TEST_DIR = str(_test_dir)
+REPO_DIR = str(_test_dir.parent)
+SRC_DIR = str(_test_dir.parent / "src/")
+TEST_DATA_PATH: str = str(_test_dir / "test_data.json")
 
 TEST_DATA = [
     {
@@ -64,5 +69,3 @@ TEST_DATA = [
         "created_at": "2025-04-22 00:00:00",
     },
 ]
-
-TEST_DATA_PATH: str = str(Path(__file__).parent / "test_data.json")

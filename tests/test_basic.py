@@ -52,6 +52,7 @@ def test_generate_unique_id():
     id_ = tasks.generate_unique_id(data)
 
     assert id_ == 5
+    assert tasks.generate_unique_id([]) == 1
 
 
 def test_filter_tasks_by_priority():
