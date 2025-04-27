@@ -248,7 +248,7 @@ with col2:
 
 #### Description
 
-Some of the files in the app had invisible characters in their name, which I removed. These appeared as boxes in my file names within VSCode. I noticed and changed these immediately, so I'm unsure if they'd affect running tests or code.
+Some of the files in the app had invisible characters in their names, which I removed. These appeared as boxes in my file names within VSCode. I noticed and changed these immediately, so I'm unsure if they'd affect running tests or code.
 
 #### Before
 
@@ -259,3 +259,18 @@ Some of the files in the app had invisible characters in their name, which I rem
 After renaming the files, the boxes were removed:
 
 ![normal file name](./attachments/invis-char-after.png)
+
+
+## 3. Advanced Pytest Features
+
+### Code Coverage
+
+Code Location: `tests/code_coverage.py`
+
+This file contains a function, `get_code_coverage()`, that runs all tests in the `tests` directory and measures the code coverage programmatically. The code coverage matches the result of running `pytest --cov=src tests`; however, the values for `app.py` are incorrect because of how code coverage data is collected. All other values are correct.
+
+### Fixturs and Parameterization
+
+Code Location: `tests/test_advanced.py`
+
+The fixture implementation turns the `TEST_DATA` constant from `/tests/common.py` into a fixture. Parameterization includes creating similar tests as defined in `/tests/test_basic.py` but using `pytest`'s parameterization features.

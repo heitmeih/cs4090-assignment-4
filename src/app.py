@@ -20,7 +20,7 @@ from tasks import (
     load_tasks,
     save_tasks,
 )
-from tests import test_basic
+from tests import html, test_advanced, test_basic
 
 code_coverage.cov.stop()
 
@@ -38,24 +38,22 @@ def run_tests(run_func, test_name="Test"):
             else:
                 failed.append(nodeid)
 
-        message = "\n\n".join(
-            [
-                f"**Results for `{test_name}`:**",
-                f"{len(passed)} tests passed!",
-                f"{len(failed)} tests failed!",
-            ]
-        )
+        label = f"**Results for `{test_name}`:**"
+        message = [
+            f"{len(passed)} tests passed!\n{len(failed)} tests failed!",
+        ]
 
         if failed:
             lines = ["Failing tests:\n"]
             for node in failed:
-                lines.append(f"- {node}")
+                lines.append(f"- `{node}`")
+            message.append("\n".join(lines))
 
-            error_report = "\n".join(lines)
-
-            status.update(label=f"{message}\n\n{error_report}", state="error")
+            status.update(label=label, state="error", expanded=True)
         else:
-            status.update(label=message, state="complete")
+            status.update(label=label, state="complete", expanded=True)
+
+        st.markdown("\n\n".join(message))
 
 
 def main():
@@ -152,6 +150,25 @@ def main():
     if st.button("Run Basic Tests"):
         run_tests(test_basic.run_tests, "Basic Unit Tests")
 
+    if st.button("Run Advanced Tests"):
+        run_tests(test_advanced.run_tests, "Advanced Tests")
+
+    if st.button("Generate HTML Report"):
+
+        with st.status("Running Tests...") as status:
+            report_content = html.generate_html_report()
+            if report_content:
+                status.update(label="Report Created!", state="complete", expanded=True)
+                st.download_button(
+                    "Download HTML Report",
+                    data=report_content,
+                    file_name="report.html",
+                    mime="text/html",
+                    icon=":material/download:",
+                )
+            else:
+                status.update(label="Report creation failed!", state="error")
+
     if st.button("Get Test Coverage"):
         with st.status("Running Tests...") as status:
             report = code_coverage.get_code_coverage()
@@ -163,7 +180,10 @@ def main():
                 + [f"`{name}: {coverage:.2f}%`" for name, coverage in report]
             )
 
-            status.update(label=message, state="complete")
+            status.update(
+                label="Coverage Calculation Complete", state="complete", expanded=True
+            )
+            st.markdown(message)
 
 
 if __name__ == "__main__":
