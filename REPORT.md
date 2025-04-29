@@ -1,5 +1,9 @@
 # Assignment 4: To-Do App Testing Assignment
 
+## Running Code
+
+Code was developed using Python 3.10.17; install requirements using `pip install -r requirements.txt`.
+
 ## 1. Unit Testing
 
 Code location: `tests/test_basic.py`
@@ -260,7 +264,6 @@ After renaming the files, the boxes were removed:
 
 ![normal file name](./attachments/invis-char-after.png)
 
-
 ## 3. Advanced Pytest Features
 
 ### Code Coverage
@@ -274,3 +277,183 @@ This file contains a function, `get_code_coverage()`, that runs all tests in the
 Code Location: `tests/test_advanced.py`
 
 The fixture implementation turns the `TEST_DATA` constant from `/tests/common.py` into a fixture. Parameterization includes creating similar tests as defined in `/tests/test_basic.py` but using `pytest`'s parameterization features.
+
+## 4. Test Driven Development
+
+### Feature: Task Sorting
+
+This feature would allow users to sort tasks based on their properties (such as title, ID, etc.). The function would take in a list of tasks and a key to sort by, and output a sorted copy of that list of tasks. The function would take data types into account, such as dates, to ensure proper sorting. It will be comptible with filtering as well: just provide the filtered list of tasks to the sort function.
+
+#### Initial (Failing) Test
+
+```python
+def test_sort_on_test_data(test_data):
+    """Tests sorting on test data.
+
+    Args:
+        test_data (list[dict[str, Any]]): The test data (given by fixture).
+    """
+    sorted_tasks = tasks.sort_tasks(test_data, "id", False)
+
+    assert sorted_tasks == sorted(test_data, key=lambda task: task["id"], reverse=True)
+```
+
+#### Proof of Failure
+
+![initial test failure](./attachments/sort-init-failure.png)
+
+#### Feature Implementation
+
+```python
+def sort_tasks(tasks, sort_by, asc=True):
+    """
+    Sort tasks by `sort_by`.
+
+    Args:
+        tasks: The tasks to sort.
+        sort_by: The key in the tasks to sort by.
+        asc: True to sort ascending, False for descending. Defaults to True.
+
+    Returns:
+        list[dict[str, Any]]: The sorted tasks.
+    """
+    key = lambda task: task[sort_by]
+
+    if sort_by == "due_date":
+        key = lambda task: datetime.strptime(task[sort_by], DATE_FORMAT).date()
+    elif sort_by == "created_at":
+        key = lambda task: datetime.strptime(task[sort_by], TIME_FORMAT)
+
+    return sorted(tasks, key=key, reverse=not asc)
+```
+
+#### Test Passing
+
+![initial test passing](./attachments/sort-init-passing.png)
+
+#### Refactoring
+
+##### First Refactor
+
+Added more tests:
+
+```python
+@pytest.mark.parametrize(
+    "sort_by,asc,expected_order",
+    [
+        ("id", True, range(len(TEST_DATA))),  # already sorted in this order
+        ("id", False, reversed(range(len(TEST_DATA)))),
+        ("due_date", True, [2, 0, 3, 1]),
+        ("due_date", False, [1, 3, 0, 2]),
+    ],
+)
+def test_sort_on_test_data(test_data, sort_by, asc, expected_order):
+    """Tests sorting on complete test data.
+
+    Args:
+        test_data (list[dict[str, Any]]): The test data (given by fixture).
+        sort_by (str): The property to sort by.
+        asc (bool): True to sort ascending, False otherwise.
+        expected_order (Iterable[int]): The indices of TEST_DATA in the expected order.
+    """
+    sorted_tasks = tasks.sort_tasks(test_data, sort_by, asc)
+
+    assert sorted_tasks == [test_data[i] for i in expected_order]
+
+
+@pytest.mark.parametrize(
+    "task_input,sort_by,asc,expected_output",
+    [
+        ([], "id", True, []),
+        ([{"foo": 1, "bar": "baz"}], "id", True, [{"foo": 1, "bar": "baz"}]),
+    ],
+)
+def test_sort_edge_cases(task_input, sort_by, asc, expected_output):
+    """Tests sorting on specific edge cases.
+
+    Args:
+        task_input (list[dict[str, Any]]): The test data (given manually).
+        sort_by (str): The property to sort by.
+        expected_output (list[dict[str, Any]]): The expected output.
+    """
+    sorted_tasks = tasks.sort_tasks(task_input, sort_by, asc)
+
+    assert sorted_tasks == expected_output
+```
+
+For `test_sort_edge_cases`, the second test encountered a `KeyError` since the tasks didn't have the `id` key. To make this match the rest of the app (which effectively ignores key errors), I made the following refactor:
+
+```python
+def sort_tasks(tasks, sort_by, asc=True):
+    """
+    Sort tasks by key `sort_by`.
+
+    Args:
+        tasks: The tasks to sort.
+        sort_by: The key in the tasks to sort by.
+        asc: True to sort ascending, False for descending. Defaults to True.
+
+    Returns:
+        list[dict[str, Any]]: The sorted tasks.
+    """
+    missing_sort_key = []
+    has_sort_key = []
+
+    # actual for loop to avoid making two loops
+    for task in tasks:
+        if sort_by in task:
+            has_sort_key.append(task)
+        else:
+            missing_sort_key.append(task)
+
+    key = lambda task: task[sort_by]
+
+    if sort_by == "due_date":
+        key = lambda task: datetime.strptime(task[sort_by], DATE_FORMAT).date()
+    elif sort_by == "created_at":
+        key = lambda task: datetime.strptime(task[sort_by], TIME_FORMAT)
+
+    return sorted(has_sort_key, key=key, reverse=not asc) + missing_sort_key
+```
+
+I thought about using `task.get(sort_by, some_default_value)`, but then choosing a default value would be tricky; what should it be? My plan was to simply append any tasks without the `sort_by` key at the end of the sorted list, which is the approach I took here.
+
+With that in mind, I added an additional test:
+
+```python
+@pytest.mark.parametrize(
+    "task_input,sort_by,asc,expected_output",
+    [
+        ([], "id", True, []),
+        ([{"foo": 1, "bar": "baz"}], "id", True, [{"foo": 1, "bar": "baz"}]),
+        (       # THE NEW TEST
+            [
+                {"foo": 2, "bar": "baz"},
+                *[dict(id=i) for i in reversed(range(10))],
+                {"foo": 1, "bar": "baz"},
+            ],
+            "id",
+            True,
+            [
+                *[dict(id=i) for i in range(10)],
+                {"foo": 2, "bar": "baz"},
+                {"foo": 1, "bar": "baz"},
+            ],
+        ),
+    ],
+)
+def test_sort_edge_cases(task_input, sort_by, asc, expected_output):
+    """Tests sorting on specific edge cases.
+
+    Args:
+        task_input (list[dict[str, Any]]): The test data (given manually).
+        sort_by (str): The property to sort by.
+        expected_output (list[dict[str, Any]]): The expected output.
+    """
+    sorted_tasks = tasks.sort_tasks(task_input, sort_by, asc)
+
+    assert sorted_tasks == expected_output
+
+```
+
+This test checks if the tasks with a non-matching key are rightfully placed at the end of the sorted list.

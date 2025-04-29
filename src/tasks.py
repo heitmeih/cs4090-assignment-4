@@ -146,3 +146,35 @@ def get_overdue_tasks(tasks):
                     )
 
     return overdue
+
+
+def sort_tasks(tasks, sort_by, asc=True):
+    """
+    Sort tasks by key `sort_by`.
+
+    Args:
+        tasks: The tasks to sort.
+        sort_by: The key in the tasks to sort by.
+        asc: True to sort ascending, False for descending. Defaults to True.
+
+    Returns:
+        list[dict[str, Any]]: The sorted tasks.
+    """
+    missing_sort_key = []
+    has_sort_key = []
+
+    # actual for loop to avoid making two loops
+    for task in tasks:
+        if sort_by in task:
+            has_sort_key.append(task)
+        else:
+            missing_sort_key.append(task)
+
+    key = lambda task: task[sort_by]
+
+    if sort_by == "due_date":
+        key = lambda task: datetime.strptime(task[sort_by], DATE_FORMAT).date()
+    elif sort_by == "created_at":
+        key = lambda task: datetime.strptime(task[sort_by], TIME_FORMAT)
+
+    return sorted(has_sort_key, key=key, reverse=not asc) + missing_sort_key

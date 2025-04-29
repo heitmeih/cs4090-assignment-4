@@ -19,6 +19,7 @@ from tasks import (
     generate_unique_id,
     load_tasks,
     save_tasks,
+    sort_tasks,
 )
 from tests import html, test_advanced, test_basic
 
@@ -95,53 +96,62 @@ def main():
     st.header("Your Tasks")
 
     # Filter options
-    col1, col2 = st.columns(2)
+    col1, col2, col3 = st.columns(3)
     with col1:
         filter_category = st.selectbox(
             "Filter by Category",
             ["All"]
             + list(set([task["category"] for task in tasks if "category" in task])),
         )
+        show_completed = st.checkbox("Show Completed Tasks")
     with col2:
         filter_priority = st.selectbox(
             "Filter by Priority", ["All", "High", "Medium", "Low"]
         )
-
-    show_completed = st.checkbox("Show Completed Tasks")
+    with col3:
+        sort_by = st.selectbox(
+            "Sort By",
+            [None] + list({key for task in tasks for key in task.keys()}),
+            placeholder="Choose an Option",
+        )
+        ascending = st.checkbox("Sort Ascending", value=True)
 
     # Apply filters
-    filtered_tasks = tasks.copy()
+    filtered_tasks = [task.copy() for task in tasks]
     if filter_category != "All":
         filtered_tasks = filter_tasks_by_category(filtered_tasks, filter_category)
     if filter_priority != "All":
         filtered_tasks = filter_tasks_by_priority(filtered_tasks, filter_priority)
     if not show_completed:
         filtered_tasks = [task for task in filtered_tasks if not task["completed"]]
+    filtered_tasks = sort_tasks(filtered_tasks, sort_by, ascending)
 
     # Display tasks
     for task in filtered_tasks:
         col1, col2 = st.columns([4, 1])
         with col1:
-            if task["completed"]:
+            if task.get("completed", False):
                 st.markdown(f"~~**{task['title']}**~~")
             else:
                 st.markdown(f"**{task['title']}**")
-            st.write(task["description"])
+            st.write(task.get("description", "No Description"))
             st.caption(
-                f"Due: {task['due_date']} | Priority: {task['priority']} | Category: {task['category']}"
+                f"Due: {task.get('due_date', 'N/A')} | Priority: {task.get('priority', 'N/A')} | Category: {task.get('category', 'N/A')}"
             )
         with col2:
             if st.button(
-                "Complete" if not task["completed"] else "Undo",
-                key=f"complete_{task['id']}",
+                "Complete" if not task.get("completed", False) else "Undo",
+                key=f"complete_{task.get('id', None)}",
             ):
                 for t in tasks:
                     if t["id"] == task["id"]:
                         t["completed"] = not t["completed"]
                         save_tasks(tasks)
                         st.rerun()
-            if st.button("Delete", key=f"delete_{task['id']}"):
-                tasks = [t for t in tasks if t["id"] != task["id"]]
+            if st.button("Delete", key=f"delete_{task.get('id', None)}"):
+                tasks = [
+                    t for t in tasks if task.get("id", None) != task.get("id", None)
+                ]
                 save_tasks(tasks)
                 st.rerun()
 
