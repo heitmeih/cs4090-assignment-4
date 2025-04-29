@@ -4,6 +4,14 @@
 
 Code was developed using Python 3.10.17; install requirements using `pip install -r requirements.txt`.
 
+Run the code using the following command:
+
+```bash
+streamlit run ./src/app.py
+```
+
+Additionally, you should only run things from the root project directory (including `pytest`).
+
 ## 1. Unit Testing
 
 Code location: `tests/test_basic.py`
@@ -16,7 +24,7 @@ Create at least one test per function in `tasks.py`. If the function has multipl
 
 ![code coverage](./attachments/code-coverage.png)
 
-Note: Given that `app.py` is graphical interface code, there's not really an easy way of automatically testing it (unless there's a tool I don't know about). Hence, I interpretted the 90% coverage estimate as applying only to `tasks.py`. `tasks.py` contains the majority of the functionality of the app, anyway.
+**Note:** Given that `app.py` is graphical interface code, there's not really an easy way of automatically testing it (unless there's a tool I don't know about). Hence, I interpretted the 90% coverage estimate as applying only to `tasks.py`. `tasks.py` contains the majority of the functionality of the app, anyway.
 
 ## 2. Bug Reporting And Fixing
 
@@ -105,7 +113,7 @@ I also added global constants `DATE_FORMAT` and `TIME_FORMAT`, which I used to r
 
 #### Description
 
-In the `generate_unique_test_id` function of `tasks.py`, if a task is missing an ID, the program will throw an error. Ideally, this shouldn't happen in the first place, but any corruption will render the app dysfunctional.
+In the `generate_unique_id` function of `tasks.py`, if a task is missing an ID, the program will throw an error. Ideally, this shouldn't happen in the first place, but any corruption will render the app dysfunctional.
 
 #### Before
 
@@ -272,11 +280,17 @@ Code Location: `tests/code_coverage.py`
 
 This file contains a function, `get_code_coverage()`, that runs all tests in the `tests` directory and measures the code coverage programmatically. The code coverage matches the result of running `pytest --cov=src tests`; however, the values for `app.py` are incorrect because of how code coverage data is collected. All other values are correct.
 
-### Fixturs and Parameterization
+### Fixtures and Parameterization
 
 Code Location: `tests/test_advanced.py`
 
 The fixture implementation turns the `TEST_DATA` constant from `/tests/common.py` into a fixture. Parameterization includes creating similar tests as defined in `/tests/test_basic.py` but using `pytest`'s parameterization features.
+
+### HTML Reports
+
+Code Location: `tests/html.py`
+
+The code in this file contains a function, `generate_html_report`, which generates an HTML report of tests using `pytest-html`. It creates a file `temp/report.html`, which it reads into memory and returns as a string. After that, the temporary file is deleted. A button on the UI appears after report generation allowing the user to download the HTML report from their browser.
 
 ## 4. Test Driven Development
 
@@ -512,7 +526,7 @@ def test_complete_all_edge_cases(task_input, expected_output):
     assert sorted_tasks == expected_output
 ```
 
-The code worked as intended on the first try, so no additional refactoring was required.
+These additional tests showed that the code continued to function as intended, so no refactoring was needed.
 
 ### Feature: Task Stats
 
@@ -625,3 +639,20 @@ def test_get_task_stats_edge_cases(task_input, expected_output):
 ```
 
 The existing code worked under the new tests as well, so it was not refactored.
+
+## 5. Behavior Driven Developemnt
+
+For my five BDD tests, I decided to remake some of the tests I made in the [TDD section](#4-test-driven-development) using `pytest-bdd`. Specifically, I created features files for the [sorting feature](#feature-task-sorting) (located at [./tests/features/sort.feature](./tests/feature/sort.feature)) and the [stats feature](#feature-task-stats) (located at [./tests/features/stats.feature](./tests/feature/stats.feature)).
+
+### Sorting Tests
+
+- [test_sort_by_id](./tests/feature/test_sort_by_id.py): Tests sorting by ID on the standard test data I created.
+- [test_sort_by_due_date](./tests/feature/test_sort_by_due_date): Tests sorting by due date on the standard test data I created.
+- [test_sort_empty](./tests/feature/test_sort_by_id.py): Tests sorting an empty list
+
+### Stats Tests
+
+- [test_stats_test_data](./tests/feature/test_stats_test_data.py): Tests getting stats on the standard test data I created.
+- [test_stats_empty_list](./tests/feature/test_stats_empty_list.py): Tests getting stats on an empty list of tasks.
+
+Additionally, I made use of parsing values from the feature file in these tests.

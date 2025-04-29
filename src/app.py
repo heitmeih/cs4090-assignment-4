@@ -23,7 +23,7 @@ from tasks import (
     save_tasks,
     sort_tasks,
 )
-from tests import html, test_advanced, test_basic
+from tests import html, test_advanced, test_basic, test_bdd, test_tdd
 
 code_coverage.cov.stop()
 
@@ -179,6 +179,12 @@ def main():
 
     if st.button("Run Advanced Tests"):
         run_tests(test_advanced.run_tests, "Advanced Tests")
+
+    if st.button("Run TDD Tests"):
+        run_tests(test_tdd.run_tests, "TDD Tests")
+
+    if st.button("Run BDD Tests"):
+        run_tests(test_bdd.run_tests, "BDD Tests")
 
     if st.button("Generate HTML Report"):
 

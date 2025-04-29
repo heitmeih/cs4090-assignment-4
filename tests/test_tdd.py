@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 import pytest
 
 from src import tasks
-from tests.common import TEST_DATA
+from tests.common import TEST_DATA, run_pytest
 
 
 @pytest.fixture
@@ -17,10 +17,11 @@ def test_data():
 @pytest.mark.parametrize(
     "sort_by,asc,expected_order",
     [
-        ("id", True, range(len(TEST_DATA))),  # already sorted in this order
-        ("id", False, reversed(range(len(TEST_DATA)))),
+        ("id", True, [0, 1, 2, 3]),  # already sorted in this order
+        ("id", False, [3, 2, 1, 0]),
         ("due_date", True, [2, 0, 3, 1]),
         ("due_date", False, [1, 3, 0, 2]),
+        ("created_at", True, [0, 1, 2, 3]),
     ],
 )
 def test_sort_on_test_data(test_data, sort_by, asc, expected_order):
@@ -144,3 +145,7 @@ def test_get_task_stats_edge_cases(task_input, expected_output):
     sorted_tasks = tasks.get_task_stats(task_input)
 
     assert sorted_tasks == expected_output
+
+
+def run_tests():
+    return run_pytest(__file__)
