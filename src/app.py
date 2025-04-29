@@ -18,6 +18,7 @@ from tasks import (
     filter_tasks_by_category,
     filter_tasks_by_priority,
     generate_unique_id,
+    get_task_stats,
     load_tasks,
     save_tasks,
     sort_tasks,
@@ -125,6 +126,12 @@ def main():
         tasks = complete_all_tasks(tasks)
         save_tasks(tasks)
         st.rerun()
+
+    stats = get_task_stats(tasks)
+
+    st.write(
+        f"Total Tasks: {stats[0]} | Completed Tasks: {stats[2]} | Complete Tasks: {stats[1]} | Overdue Tasks: {stats[3]}"
+    )
 
     # Apply filters
     filtered_tasks = [task.copy() for task in tasks]

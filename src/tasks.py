@@ -182,7 +182,7 @@ def sort_tasks(tasks, sort_by, asc=True):
 
 def complete_all_tasks(tasks):
     """
-    Sort tasks by key `sort_by`.
+    Completes all the provided tasks.
 
     Args:
         tasks: The tasks to complete.
@@ -196,3 +196,33 @@ def complete_all_tasks(tasks):
         task["completed"] = True
 
     return tasks
+
+
+def get_task_stats(tasks):
+    """
+    Get stats for tasks.
+
+    Args:
+        tasks: The tasks to get stats for.
+
+    Returns:
+        tuple[int, int, int, int]: (num_tasks, num_incomplete, num_completed, num_overdue)
+    """
+    incomplete = 0
+    complete = 0
+    overdue = 0
+
+    today = datetime.now().date()
+
+    for task in tasks:
+        if not task.get("completed", False):
+            incomplete += 1
+            if (
+                "due_date" in task
+                and datetime.strptime(task["due_date"], DATE_FORMAT).date() < today
+            ):
+                overdue += 1
+        else:
+            complete += 1
+
+    return len(tasks), incomplete, complete, overdue
