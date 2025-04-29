@@ -130,7 +130,7 @@ def main():
     stats = get_task_stats(tasks)
 
     st.write(
-        f"Total Tasks: {stats[0]} | Completed Tasks: {stats[2]} | Complete Tasks: {stats[1]} | Overdue Tasks: {stats[3]}"
+        f"Total Tasks: {stats[0]} | Completed Tasks: {stats[2]} | Incomplete Tasks: {stats[1]} | Overdue Tasks: {stats[3]}"
     )
 
     # Apply filters
