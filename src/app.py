@@ -14,6 +14,7 @@ code_coverage.cov.start()
 from tasks import (
     DATE_FORMAT,
     TIME_FORMAT,
+    complete_all_tasks,
     filter_tasks_by_category,
     filter_tasks_by_priority,
     generate_unique_id,
@@ -108,6 +109,7 @@ def main():
         filter_priority = st.selectbox(
             "Filter by Priority", ["All", "High", "Medium", "Low"]
         )
+
     with col3:
         sort_by = st.selectbox(
             "Sort By",
@@ -115,6 +117,14 @@ def main():
             placeholder="Choose an Option",
         )
         ascending = st.checkbox("Sort Ascending", value=True)
+
+    if st.button(
+        "Complete All Tasks",
+        disabled=all(task.get("completed", False) for task in tasks),
+    ):
+        tasks = complete_all_tasks(tasks)
+        save_tasks(tasks)
+        st.rerun()
 
     # Apply filters
     filtered_tasks = [task.copy() for task in tasks]

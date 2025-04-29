@@ -72,4 +72,26 @@ def test_sort_edge_cases(task_input, sort_by, asc, expected_output):
 # ---------- COMPLETE ALL ----------
 
 
+def test_complete_all(test_data):
+    all_complete = tasks.complete_all_tasks(test_data)
+
+    assert all([task["completed"] for task in all_complete])
+
+
+@pytest.mark.parametrize(
+    "task_input,expected_output",
+    [([], []), ([{}], [{"completed": True}])],
+)
+def test_complete_all_edge_cases(task_input, expected_output):
+    """Tests sorting on specific edge cases.
+
+    Args:
+        task_input (list[dict[str, Any]]): The test data (given manually).
+        expected_output (list[dict[str, Any]]): The expected output.
+    """
+    sorted_tasks = tasks.complete_all_tasks(task_input)
+
+    assert sorted_tasks == expected_output
+
+
 # ---------- Other Thing ----------

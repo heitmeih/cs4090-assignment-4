@@ -457,3 +457,59 @@ def test_sort_edge_cases(task_input, sort_by, asc, expected_output):
 ```
 
 This test checks if the tasks with a non-matching key are rightfully placed at the end of the sorted list.
+
+### Feature: Complete All
+
+This feature would provide a convinient way for users to complete all tasks at once.
+
+#### Initial (Failing) Test
+
+```python
+def test_complete_all(test_data):
+    all_complete = tasks.complete_all(test_data)
+
+    assert all([task["completed"] for task in all_complete])
+```
+
+#### Proof of Failure
+
+![initial failure](./attachments/ca-init-failure.png)
+
+#### Feature Implementation
+
+```python
+
+```
+
+#### Test Passing
+
+![passing test](./attachments/ca-init-passing.png)
+
+#### Refactoring
+
+Added more tests:
+
+```python
+def test_complete_all(test_data):
+    all_complete = tasks.complete_all_tasks(test_data)
+
+    assert all([task["completed"] for task in all_complete])
+
+
+@pytest.mark.parametrize(
+    "task_input,expected_output",
+    [([], []), ([{}], [{"completed": True}])],
+)
+def test_complete_all_edge_cases(task_input, expected_output):
+    """Tests sorting on specific edge cases.
+
+    Args:
+        task_input (list[dict[str, Any]]): The test data (given manually).
+        expected_output (list[dict[str, Any]]): The expected output.
+    """
+    sorted_tasks = tasks.complete_all_tasks(task_input)
+
+    assert sorted_tasks == expected_output
+```
+
+The code worked as intended on the first try, so no additional refactoring was required.

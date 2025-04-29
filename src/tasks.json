@@ -126,7 +126,7 @@
     "priority": "High",
     "category": "School",
     "due_date": "2025-04-27",
-    "completed": false,
+    "completed": true,
     "created_at": "2025-04-25 08:56:59"
   },
   {
@@ -136,7 +136,7 @@
     "priority": "Low",
     "category": "Work",
     "due_date": "2025-04-29",
-    "completed": false,
+    "completed": true,
     "created_at": "2025-04-29 14:49:02"
   }
 ]

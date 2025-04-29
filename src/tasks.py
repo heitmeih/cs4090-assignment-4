@@ -178,3 +178,21 @@ def sort_tasks(tasks, sort_by, asc=True):
         key = lambda task: datetime.strptime(task[sort_by], TIME_FORMAT)
 
     return sorted(has_sort_key, key=key, reverse=not asc) + missing_sort_key
+
+
+def complete_all_tasks(tasks):
+    """
+    Sort tasks by key `sort_by`.
+
+    Args:
+        tasks: The tasks to complete.
+
+    Returns:
+        list[dict[str, Any]]: The completed tasks.
+    """
+    tasks = [task.copy() for task in tasks]
+
+    for task in tasks:
+        task["completed"] = True
+
+    return tasks
